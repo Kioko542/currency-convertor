@@ -31,3 +31,4 @@ This is a simple command-line currency converter implemented in Python. The prog
 - forex-python
   ```bash
   pip install forex-python
+pip install sqlalchemy
