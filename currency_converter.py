@@ -1,6 +1,7 @@
 from forex_python.converter import CurrencyRates
 from sqlalchemy.orm import sessionmaker
 from database import add_exchange_rate, convert_currency, initialize_database, view_all_exchange_rates, update_exchange_rate
+import questionary
 
 def print_menu():
     print("\nCurrency Converter:")
@@ -15,25 +16,29 @@ def main():
     Session = sessionmaker(bind=engine)
     session = Session()
 
+    currency_rates = CurrencyRates()
+
     while True:
         print_menu()
 
-        choice = input("Enter your choice (1/2/3/4/5): ")
+        choice = questionary.select("Enter your choice:", choices=['1', '2', '3', '4', '5']).ask()
 
         if choice == '1':
-            base_currency = input("Enter the base currency code: ")
-            target_currency = input("Enter the target currency code: ")
-            rate = float(input("Enter the exchange rate: "))
+            base_currency = questionary.text("Enter the base currency code:").ask()
+            target_currency = questionary.text("Enter the target currency code:").ask()
+            rate = currency_rates.get_rate(base_currency, target_currency)
 
             add_exchange_rate(session, base_currency, target_currency, rate)
             print(f"Exchange rate added: {base_currency} to {target_currency} = {rate}")
 
         elif choice == '2':
-            amount = float(input("Enter the amount to convert: "))
-            base_currency = input("Enter the base currency code: ")
-            target_currency = input("Enter the target currency code: ")
+            amount = questionary.text("Enter the amount to convert:").ask()
+            base_currency = questionary.text("Enter the base currency code:").ask()
+            target_currency = questionary.text("Enter the target currency code:").ask()
 
-            converted_amount, new_currency = convert_currency(session, amount, base_currency, target_currency)
+            rate = currency_rates.get_rate(base_currency, target_currency)
+            converted_amount, new_currency = convert_currency(amount, rate)
+            
             if converted_amount is not None:
                 print(f"{amount} {base_currency} is equal to {converted_amount:.2f} {new_currency}")
 
@@ -41,9 +46,9 @@ def main():
             view_all_exchange_rates(session)
 
         elif choice == '4':
-            base_currency = input("Enter the base currency code: ")
-            target_currency = input("Enter the target currency code: ")
-            new_rate = float(input("Enter the new exchange rate: "))
+            base_currency = questionary.text("Enter the base currency code:").ask()
+            target_currency = questionary.text("Enter the target currency code:").ask()
+            new_rate = currency_rates.get_rate(base_currency, target_currency)
 
             update_exchange_rate(session, base_currency, target_currency, new_rate)
 
